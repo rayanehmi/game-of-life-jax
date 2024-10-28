@@ -1,3 +1,6 @@
 pytest
 coverage
 ruff
+jax~=0.4.35
+matplotlib~=3.9.2
+jaxtyping~=0.2.34
