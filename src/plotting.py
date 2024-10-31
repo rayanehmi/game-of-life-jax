@@ -23,7 +23,7 @@ def plot_grid(
     :return: None
     """
     # Part 1 : convert values higher than 1 to 1
-    grid_bool = grid > 0
+    grid_bool = grid == 0
 
     # Part 2 : plot the grid
     plt.imshow(grid_bool, cmap='gray')

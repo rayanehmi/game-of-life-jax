@@ -2,83 +2,69 @@ import jax
 import jax.numpy as jnp
 from jax import Array
 from jaxtyping import Int
-import time
 import matplotlib.pyplot as plt
 
-
-def augment_grid(grid: Int[Array, '...']) -> Int[Array, '...']:
-    """Creates a new array with the surrounding zeros"""
-    ret = jnp.pad(grid, ((1, 1), (1, 1)))
-    return ret
-
-
-def compute_neighbors(grid: Int[Array, '...']) -> Int[Array, '...']:
-    """Returns an array with the sum of neighbors for each cell."""
-    augmented_grid = augment_grid(grid)
-    left = jnp.roll(augmented_grid, -1)
-    right = jnp.roll(augmented_grid, 1)
-    down = jnp.roll(augmented_grid, shift=[1, 0], axis=[0, 1])
-    up = jnp.roll(augmented_grid, shift=[-1, 0], axis=[0, 1])
-    left_up = jnp.roll(augmented_grid, shift=[-1, -1], axis=[0, 1])
-    right_up = jnp.roll(augmented_grid, shift=[-1, 1], axis=[0, 1])
-    down_left = jnp.roll(augmented_grid, shift=[1, -1], axis=[0, 1])
-    down_right = jnp.roll(augmented_grid, shift=[1, 1], axis=[0, 1])
-    summation = up + down + left + right + left_up + right_up + down_left + down_right
-    cropped_sum = summation[1: -1, 1:-1]
-    return cropped_sum
+from src.functions import (
+    generate_initial_grid,
+    unoptimized_gameoflife,
+    optimized_gameoflife,
+    compiled_gameoflife
+)
+import timeit
 
 
-def next_turn(grid: Int[Array, '...']) -> Int[Array, '...']:
-    """Returns a non-augmented evolved grid"""
-    neighbor_grid = compute_neighbors(grid)
-    first_condition = (grid == 1) & ((neighbor_grid == 2) | (neighbor_grid == 3))
-    second_condition = (grid == 0) & (neighbor_grid == 3)
-    next_grid = jnp.where(first_condition | second_condition, 1, 0)
-    return next_grid
-
-
-def benchmark(init_grid: Int[Array, '...']) -> None:
+def benchmark() -> None:
     """Benchmarks the performance of the next_turn function"""
 
-    num_iter_list = [1, 500, 1000, 5000, 10000]
-    compiled_times = []
-    not_compiled_times = []
+    sizes = [10, 100, 250, 1000, 10000]
+    times_unoptimized = []
+    times_optimized = []
+    times_compiled = []
 
-    # compiled
-    for num_iter in num_iter_list:
-        start_time = time.time()
-        _ = jax.lax.fori_loop(
-            lower = 0,
-            upper = num_iter,
-            body_fun = lambda i, x: next_turn(x),
-            init_val = init_grid
-        )
-        end_time = time.time()
-        compiled_times.append(end_time - start_time)
+    for size in sizes:
+        print(f"Running benchmark for size {size}")
+        grid = generate_initial_grid(size)
+        grid_unoptimized = grid.copy()
+        grid_optimized = grid.copy()
+        grid_compiled = grid.copy()
 
-    # not compiled
-    for num_iter in num_iter_list:
-        start_time = time.time()
-        for i in range(num_iter):
-            init_grid = next_turn(init_grid)
-        end_time = time.time()
-        not_compiled_times.append(end_time - start_time)
+        if size < 1000:
+            times_unoptimized.append(timeit.timeit(lambda: unoptimized_gameoflife(grid_unoptimized, 100), number=1))
+        if size < 5000:
+            times_optimized.append(timeit.timeit(lambda: optimized_gameoflife(grid_optimized, 100), number=1))
+        times_compiled.append(timeit.timeit(lambda: compiled_gameoflife(grid_compiled, 100), number=1))
 
-    plt.scatter(num_iter_list, compiled_times, label="compiled")
-    plt.scatter(num_iter_list, not_compiled_times, label="not compiled")
-    plt.xlabel("Number of iterations")
-    plt.ylabel("Time taken (seconds)")
+    plt.plot(sizes[:len(times_unoptimized)], times_unoptimized, label="Unoptimized")
+    plt.plot(sizes[:len(times_optimized)], times_optimized, label="Optimized")
+    plt.plot(sizes, times_compiled, label="Compiled")
+    plt.xscale('log')
+    plt.yscale('log')
+    plt.xlabel("Grid size")
+    plt.ylabel("Time (s)")
     plt.legend()
     plt.show()
+    plt.savefig("benchmark.png")
+
+def benchmark_gpu_only() -> None:
+    """Benchmarks the performance of the next_turn function"""
+
+    sizes = [10, 100, 1000, 10000]
+    times_compiled = []
+    for size in sizes:
+        print(f"Running benchmark for size {size}")
+        grid_compiled = generate_initial_grid(size)
+        times_compiled.append(timeit.timeit(lambda: compiled_gameoflife(grid_compiled, 5000), number=1))
+
+    plt.plot(sizes, times_compiled, label="Compiled")
+    plt.xscale('log')
+    plt.yscale('log')
+    plt.xlabel("Grid size")
+    plt.ylabel("Time (s)")
+    plt.legend()
+    plt.show()
+    plt.savefig("benchmark_gpu_only.png")
 
 
 if __name__ == "__main__":
     print("available devices :", jax.devices())
-
-    blinker = jnp.array([[0, 0, 0], [1, 1, 1], [0, 0, 0]])
-
-    benchmark(blinker)
-
-
-
-
+    benchmark_gpu_only()
