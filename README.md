@@ -1,9 +1,11 @@
 # Game of Life in JAX
 
+A high-performance implementation of Conway's Game of Life using JAX, featuring both CPU and GPU support. This implementation leverages JAX's vectorized operations and JIT compilation for optimal performance.
+
+The example below compares python loops (Unoptimized), JAX Numpy arrays without JIT compilation (Optimized) and compiled JAX code (Compiled).
+
 ![Example benchmark Results](benchmark.png)
 
-
-A high-performance implementation of Conway's Game of Life using JAX, featuring both CPU and GPU support. This implementation leverages JAX's vectorized operations and JIT compilation for optimal performance.
 
 ## Features
 
