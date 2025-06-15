@@ -1,0 +1,6 @@
+jax==0.4.21
+jaxlib==0.4.21
+jaxtyping==0.2.34
+matplotlib
+numpy
+scipy

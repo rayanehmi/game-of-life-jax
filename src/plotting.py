@@ -5,11 +5,11 @@ from jaxtyping import Bool, Int
 
 
 def plot_grid(
-        grid: Int[Array, '...'],
-        show: bool = True,
-        save_path: str = None,
-        name: str = "grid.png"
-) -> Bool[Array, '...']:
+    grid: Int[Array, "..."],
+    show: bool = True,
+    save_path: str = None,
+    name: str = "grid.png",
+) -> Bool[Array, "..."]:
     """
     Plots the grid.
     The grid is a 2D jax numpy array of integers. The function needs first to convert the grid to a boolean grid where
@@ -23,10 +23,10 @@ def plot_grid(
     :return: None
     """
     # Part 1 : convert values higher than 1 to 1
-    grid_bool = grid == 0
+    grid_bool = grid > 0
 
     # Part 2 : plot the grid
-    plt.imshow(grid_bool, cmap='gray')
+    plt.imshow(grid_bool, cmap="gray")
     plt.gca().invert_yaxis()
     plt.xticks(range(grid_bool.shape[1]))
     plt.yticks(range(grid_bool.shape[0]))

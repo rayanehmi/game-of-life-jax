@@ -1,19 +1,34 @@
+"""
+An implementation of Conway's Game of Life using the JAX library.
+
+The core mechanics are:
+1. `augment_grid`: Adds padding of zeros around the grid to handle edge cases
+2. `compute_neighbors`: Uses JAX's roll operations to efficiently calculate neighbor sums by shifting the grid in all 8 directions
+3. `next_turn`: Applies Conway's rules using boolean operations:
+   - Cells survive if they have 2-3 neighbors
+   - Dead cells with exactly 3 neighbors become alive
+   - All other cells die
+The implementation is optimized for performance using JAX's vectorized operations and supports both CPU and GPU execution.
+
+author: rayanehmi@github
+"""
+
 import jax
 import jax.numpy as jnp
 import numpy as np
 from jax import Array
 from jaxtyping import Int
 import time
-import matplotlib.pyplot as plt
+
 
 def augment_grid(grid: Int[Array, '...']) -> Int[Array, '...']:
-    """Creates a new array with the surrounding zeros"""
+    """Creates a new array with zeros padding on each side."""
     ret = jnp.pad(grid, ((1, 1), (1, 1)))
     return ret
 
 
 def compute_neighbors(grid: Int[Array, '...']) -> Int[Array, '...']:
-    """Returns an array with the sum of neighbors for each cell."""
+    """Returns an array where each cell is the number of non-zero neightbors of that cell in "grid"."""
     augmented_grid = augment_grid(grid)
     left = jnp.roll(augmented_grid, -1)
     right = jnp.roll(augmented_grid, 1)
@@ -29,7 +44,7 @@ def compute_neighbors(grid: Int[Array, '...']) -> Int[Array, '...']:
 
 
 def next_turn(grid: Int[Array, '...']) -> Int[Array, '...']:
-    """Returns a non-augmented evolved grid"""
+    """Applies one turn of the Game of Life rules to the grid and returns the new grid."""
     neighbor_grid = compute_neighbors(grid)
     first_condition = (grid == 1) & ((neighbor_grid == 2) | (neighbor_grid == 3))
     second_condition = (grid == 0) & (neighbor_grid == 3)
@@ -42,10 +57,11 @@ def generate_initial_grid(
         proportion_alive: float = 0.5,
         seed : int = 0
 ) -> Int[Array, ' size size']:
-    """Generates a random grid of zeros and ones (int32)"""
+    """Generates a (size, size) grid randomly filled with zeros and ones (int32)"""
     key = jax.random.key(seed)
     return jnp.where(
-        jax.random.bernoulli(key, proportion_alive, (size, size)), 1, 0)
+        jax.random.bernoulli(key, proportion_alive, (size, size)), 1, 0
+    )
 
 
 def unoptimized_gameoflife(grid: Int[Array, '...'], n_iter: int) -> Int[Array, '...']:
@@ -73,7 +89,7 @@ def unoptimized_gameoflife(grid: Int[Array, '...'], n_iter: int) -> Int[Array, '
 
 
 def optimized_gameoflife(grid: Int[Array, '...'], n_iter: int) -> Int[Array, '...']:
-    """Runs the Game of Life for n_iter iterations using JAX functions."""
+    """Runs the Game of Life for n_iter iterations using JAX functions in a python loop."""
     for _ in range(n_iter):
         grid = next_turn(grid)
     return grid

@@ -16,6 +16,6 @@ def test_plot_grid(tmp_path: str):
     target = jnp.array([[False, True], [True, False]])
     assert jnp.all(grid_returned == target), "Grid not converted correctly."
 
-    assert os.path.exists(
-        os.path.join(tmp_path, "grid_test.png")
-    ), "Grid plot not saved."
+    assert os.path.exists(os.path.join(tmp_path, "grid_test.png")), (
+        "Grid plot not saved."
+    )

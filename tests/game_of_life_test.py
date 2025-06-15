@@ -1,4 +1,4 @@
-from src.functions import (
+from src.game_of_life import (
     augment_grid,
     compute_neighbors,
     next_turn,
@@ -74,3 +74,38 @@ def test_all_gameoflife():
 
         assert jnp.all(glider_optimized == glider_unoptimized), "Optimized and unoptimized not equal"
         assert jnp.all(glider_optimized == glider_compiled), "Optimized and compiled not equal"
+
+
+def test_unoptimized_gameoflife():
+    # Test with a blinker pattern (oscillator)
+    blinker = jnp.array([
+        [0, 0, 0],
+        [1, 1, 1],
+        [0, 0, 0]
+    ])
+    
+    # After one iteration, the blinker should be vertical
+    result_1 = unoptimized_gameoflife(blinker, 1)
+    expected_1 = jnp.array([
+        [0, 1, 0],
+        [0, 1, 0],
+        [0, 1, 0]
+    ])
+    assert jnp.all(result_1 == expected_1), "Blinker pattern failed after 1 iteration"
+    
+    # After two iterations, it should be back to horizontal
+    result_2 = unoptimized_gameoflife(blinker, 2)
+    assert jnp.all(result_2 == blinker), "Blinker pattern failed after 2 iterations"
+    
+    # Test with a block (still life)
+    block = jnp.array([
+        [0, 0, 0, 0],
+        [0, 1, 1, 0],
+        [0, 1, 1, 0],
+        [0, 0, 0, 0]
+    ])
+    
+    # Block should remain unchanged after any number of iterations
+    result_block = unoptimized_gameoflife(block, 5)
+    assert jnp.all(result_block == block), "Block pattern failed to remain stable"
+

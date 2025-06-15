@@ -1,10 +1,7 @@
 import jax
-import jax.numpy as jnp
-from jax import Array
-from jaxtyping import Int
 import matplotlib.pyplot as plt
 
-from src.functions import (
+from game_of_life import (
     generate_initial_grid,
     unoptimized_gameoflife,
     optimized_gameoflife,
@@ -13,10 +10,11 @@ from src.functions import (
 import timeit
 
 
-def benchmark() -> None:
-    """Benchmarks the performance of the next_turn function"""
+def full_benchmark() -> None:
+    """Benchmarks the performance of the next_turn function.
+    Compares python loops, JAX numpy arrays and compiled JAX loops."""
 
-    sizes = [10, 100, 250, 1000, 10000]
+    sizes = [10, 100, 250, 500, 1000]
     times_unoptimized = []
     times_optimized = []
     times_compiled = []
@@ -43,12 +41,13 @@ def benchmark() -> None:
     plt.ylabel("Time (s)")
     plt.legend()
     plt.show()
-    plt.savefig("benchmark.png")
 
 def benchmark_gpu_only() -> None:
     """Benchmarks the performance of the next_turn function"""
 
-    sizes = [10, 100, 1000, 10000]
+    print(f"Current platform: {jax.default_backend()}")
+
+    sizes = [10, 100, 250, 500, 1000]
     times_compiled = []
     for size in sizes:
         print(f"Running benchmark for size {size}")
@@ -62,9 +61,7 @@ def benchmark_gpu_only() -> None:
     plt.ylabel("Time (s)")
     plt.legend()
     plt.show()
-    plt.savefig("benchmark_gpu_only.png")
 
 
 if __name__ == "__main__":
-    print("available devices :", jax.devices())
-    benchmark_gpu_only()
+    full_benchmark()

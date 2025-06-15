@@ -1,0 +1,14 @@
+# .pre-commit-config.yaml
+
+repos:
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0 # Or the latest stable version
+    hooks:
+    -   id: name-tests-test
+
+-   repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.11.12 # Periodically replace with the latest stable tag for ruff-pre-commit
+    hooks:
+    -   id: ruff-check
+        args: [--fix]
+    -   id: ruff-format
